@@ -21,7 +21,25 @@ pipeline {
                 sh 'mvn package'
             }
         }
-       
+        stage ('Code Build Docker Image') {
+            steps {
+                sh 'cp /var/lib/jenkins/workspace/${JOB_NAME}/target/*.war /var/lib/jenkins/workspace/${JOB_NAME}/igp-abc-tech.war'
+                sh 'docker build -t tonytmv/abc_tech:${BUILD_NUMBER} .'
+            }
+        }
+        stage ('Code Push Docker Image') {
+            steps {
+                withDockerRegistry(credentialsId: 'dockerhub', url: '')
+                 {
+                    sh 'docker push tonytmv/abc_tech:${BUILD_NUMBER}'
+                 }
+            }
+        }
+        stage ('Code Deploy as container') {
+            steps {
+                sh 'docker run -itd -P tonytmv/abc_tech:${BUILD_NUMBER}'
+            }
+        }
     }
 }
 
