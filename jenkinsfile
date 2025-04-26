@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Code Checkout') {
             steps {
-                git url: 'https://github.com/jenkinsci/jenkins.git', branch: 'master'
+                git url: 'https://github.com/tonytmv/igp-abc-tech'
             }
         }
         stage ('Code Compile') {
