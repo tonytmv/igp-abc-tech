@@ -6,41 +6,38 @@ pipeline {
                 git url: 'https://github.com/tonytmv/igp-abc-tech'
             }
         }
-        stage ('Code Compile') {
+        stage('Code Compile') {
             steps {
                 sh 'mvn compile'
             }
         }
-        stage ('Code Test') {
+        stage('Code Test') {
             steps {
                 sh 'mvn test'
             }
         }
-        stage ('Code Packaging') {
+        stage('Code Package') {
             steps {
                 sh 'mvn package'
             }
         }
-        stage ('Code Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
-                sh 'cp /var/lib/jenkins/workspace/${JOB_NAME}/target/*.war /var/lib/jenkins/workspace/${JOB_NAME}/igp-abc-tech.war'
+                sh "cp /var/lib/jenkins/workspace/${JOB_NAME}/target/*.war /var/lib/jenkins/workspace/${JOB_NAME}/igp-abc-tech.war"
                 sh 'docker build -t tonytmv/abc_tech:${BUILD_NUMBER} .'
             }
         }
-        stage ('Code Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
-                withDockerRegistry(credentialsId: 'dockerhub', url: '')
-                 {
+                withDockerRegistry(credentialsId: 'dockerhub', url: '') {
                     sh 'docker push tonytmv/abc_tech:${BUILD_NUMBER}'
-                 }
+                }
             }
         }
-        stage ('Code Deploy as container') {
+        stage('Deploy Docker Container') {
             steps {
-                sh 'docker run -itd -P tonytmv/abc_tech:${BUILD_NUMBER}'
+                sh 'docker run -itd -p 8080:8080 tonytmv/abc_tech:${BUILD_NUMBER}'
             }
         }
     }
 }
-
-
