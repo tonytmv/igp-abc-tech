@@ -1,5 +1,5 @@
 # Stage 1: Build the WAR file using Maven
-FROM maven:3.9.9-openjdk-22 as builder
+FROM maven:3.8.6-openjdk-17 AS builder
 
 WORKDIR /app
 COPY . .
