@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: abc-tech-container
-        image: tonytmv/abc_tech
+        image: tonytmv/abc_tech:${IMAGE_TAG}
         ports:
         - containerPort: 8080
