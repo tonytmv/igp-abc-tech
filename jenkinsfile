@@ -1,43 +1,83 @@
 pipeline {
     agent any
+
+    tools {
+        maven 'Maven' // Assumes Maven is configured in Jenkins global tools
+    }
+
+    environment {
+        IMAGE_NAME = 'tonytmv/abc_tech'
+        IMAGE_TAG = '3'
+    }
+
     stages {
+        stage('Tool Install') {
+            steps {
+                echo 'Tools configured via Jenkins global tool config'
+            }
+        }
+
         stage('Code Checkout') {
             steps {
                 git url: 'https://github.com/tonytmv/igp-abc-tech'
             }
         }
+
         stage('Code Compile') {
             steps {
                 sh 'mvn compile'
             }
         }
+
         stage('Code Test') {
             steps {
                 sh 'mvn test'
             }
         }
-        stage('Code Package') {
+
+        stage('Code Packaging') {
             steps {
                 sh 'mvn package'
             }
         }
+
         stage('Build Docker Image') {
             steps {
-                sh "cp /var/lib/jenkins/workspace/${JOB_NAME}/target/*.war /var/lib/jenkins/workspace/${JOB_NAME}/igp-abc-tech.war"
-                sh 'docker build -t tonytmv/abc_tech:${BUILD_NUMBER} .'
+                sh '''
+                    cp target/ABCtechnologies-1.0.war .
+                    docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                '''
             }
         }
+
         stage('Push Docker Image') {
             steps {
-                withDockerRegistry(credentialsId: 'dockerhub', url: '') {
-                    sh 'docker push tonytmv/abc_tech:${BUILD_NUMBER}'
+                withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
+                    sh """
+                        echo "$DOCKER_TOKEN" | docker login -u tonytmv --password-stdin 
+                        docker push tonytmv/abc_tech:${BUILD_NUMBER}
+                    """
                 }
             }
         }
+
         stage('Deploy Docker Container') {
             steps {
-                sh 'docker run -itd -p 8080:8080 tonytmv/abc_tech:${BUILD_NUMBER}'
+                sh '''
+                    docker stop abc_container || true
+                    docker rm abc_container || true
+                    docker run -d --name abc_container -p 8081:8080 tonytmv/abc_tech:${BUILD_NUMBER}
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and deployment successful!'
+        }
+        failure {
+            echo 'Build failed! Check logs for errors.'
         }
     }
 }
