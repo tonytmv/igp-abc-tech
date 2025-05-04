@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: abc-tech-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: abc-tech
+  template:
+    metadata:
+      labels:
+        app: abc-tech
+    spec:
+      containers:
+      - name: abc-tech-container
+        image: tonytmv/abc_tech
+        ports:
+        - containerPort: 8080

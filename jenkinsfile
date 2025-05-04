@@ -54,7 +54,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
                     sh """
-                        echo "$DOCKER_TOKEN" | docker login -u tonytmv --password-stdin 
+                        echo "$DOCKER_TOKEN" | docker login -u tonytmv --password-stdin
                         docker push tonytmv/abc_tech:${BUILD_NUMBER}
                     """
                 }
@@ -68,6 +68,12 @@ pipeline {
                     docker rm abc_container || true
                     docker run -d --name abc_container -p 8081:8080 tonytmv/abc_tech:${BUILD_NUMBER}
                 '''
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
             }
         }
     }
